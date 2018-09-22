@@ -10,6 +10,10 @@ typedef struct a{
 } All;
 
 void Split(All* a){
+    // FIXIT: !) посмотрите, что делает ф-я strtok. она поможет разбить на слова, код будет намного короче и с меньшим числом
+    // предположений ... я имею ввиду магические константы 300, 100, 30.
+    // 2) если после использования strtok вам понадобятся какие константы, то заведите переменные с понятными названиями для них:
+    // const int MaxTokensCount = 100; и т.п.
     int res = 0;
     for(int i = 0, c = 0; i < 3000, a->count < 100, c < 30; i++) {
         if (a->str[i] == '\0')
@@ -45,6 +49,7 @@ void Scan(All* a){
     FILE* f, *ff;
     char c[10] = {NULL};
     int i = 0;
+    // FIXIT: не следует хардкодить никакие пути в коде
     if((f = fopen("/home/vladislav/CLionProjects/split/check.txt", "a+")) == NULL)
         printf("There is no this file!\n");
     if((ff = fopen("/home/vladislav/CLionProjects/split/delimeters.txt", "a+")) == NULL)
