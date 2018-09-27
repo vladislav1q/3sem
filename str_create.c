@@ -6,15 +6,11 @@ void GenerateString(int n, char* string){
     if(n < 1)
         return;
     string[0] = 'a';
-    // 1) str[1] это тоже самое, что str. видимо вы так сделали, что в strcat не писать &
-    // 2) вокруг бинарных операторов ставьте по пробелу: 'a' + i
-    // 3) закомментированный код удаляйте, если он уже не нужен
-    char str[1];
+    char str;
     for(int i = 1; i < n; i++){
-        str[0] = (char)('a'+i);
-        strcat(string, str);
-        //printf("ERROR1\n");
-        strncpy(string + (1<<i), string, (1<<i)-1);
+        str = (char)('a' + i);
+        strcat(string, &str);
+        strncpy(string + (1 << i), string, (1 << i) - 1);
     }
 }
 
