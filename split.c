@@ -3,86 +3,65 @@
 #include <stdlib.h>
 
 typedef struct a{
+    int str, delimeters, word;
+}Max;
+
+typedef struct b{
     int count;
     char* str;
     char* delimeters;
     char** words;
+    Max *max;
 } All;
 
-void Split(All* a){
-    // FIXIT: !) посмотрите, что делает ф-я strtok. она поможет разбить на слова, код будет намного короче и с меньшим числом
-    // предположений ... я имею ввиду магические константы 300, 100, 30.
-    // 2) если после использования strtok вам понадобятся какие константы, то заведите переменные с понятными названиями для них:
-    // const int MaxTokensCount = 100; и т.п.
-    int res = 0;
-    for(int i = 0, c = 0; i < 3000, a->count < 100, c < 30; i++) {
-        if (a->str[i] == '\0')
-            break;
-        for(int t = 0; t < 10; t++){
-            if((int)a->str[i] == (int)a->delimeters[t]){
-                res++;
-                break;
-            }
-        }
-        if(res == 0){
-            a->words[a->count][c] = a->str[i];
-            c++;
-        } else if(a > 0){
-            (a->count)++;
-            c = 0;
-        }
-        res = 0;
+void split(All* a){
+    a->words[a->count] = strtok(a->str, a->delimeters);
+
+    while(a->words[a->count] != NULL){
+        a->count++;
+        a->words[a->count] = strtok(NULL, a->delimeters);
     }
+
+
 }
 
-void GiveMemory(All* a){
-    a->delimeters = calloc(10, sizeof(char));
-    a->str = calloc(4000, sizeof(char));
-    a->words = calloc(100, sizeof(char*));
-    for(int i = 0; i < 100; i++){
-        a->words[i] = calloc(30, sizeof(char));
-    }
+void giveMemory(All* a){
+    a->max = calloc(1, sizeof(Max));
+    a->max->str = 4000;
+    a->max->delimeters = 50;
+    a->max->word = 40;
+    a->delimeters = calloc(a->max->delimeters, sizeof(char));
+    a->str = calloc(a->max->str, sizeof(char));
+    a->words = calloc(a->max->word, sizeof(char*));
     a->count = 0;
 }
 
-void Scan(All* a){
-    FILE* f, *ff;
-    char c[10] = {NULL};
-    int i = 0;
-    // FIXIT: не следует хардкодить никакие пути в коде
-    if((f = fopen("/home/vladislav/CLionProjects/split/check.txt", "a+")) == NULL)
-        printf("There is no this file!\n");
-    if((ff = fopen("/home/vladislav/CLionProjects/split/delimeters.txt", "a+")) == NULL)
-        printf("There is no this file!\n");
-    fgets(a->str, 4000, f);
-    fgets(c, 10, ff);
-    while(c[i] != NULL && i < 10){
-        a->delimeters[i] = c[i];
-        i++;
-    }
-}
-
-void FreeMemory(All* mem){
-    for(int i = 0; i < 100; i++){
-        free(mem->words[i]);
-    }
+void freeMemory(All* mem){
     free(mem->words);
     free(mem->delimeters);
     free(mem->str);
 }
 
+void scan(All* a){
+    printf("Write a string, you want to divide\n");
+    fgets(a->str, a->max->str, stdin);
+    printf("Write a string of delimeters\n");
+    fgets(a->delimeters, a->max->delimeters, stdin);
+}
+
 int main() {
     All a;
-    GiveMemory(&a);
-    Scan(&a);
+    giveMemory(&a);
+    scan(&a);
+    split(&a);
 
-    Split(&a);
     printf("Count of words: %d\n", a.count);
     for(int i = 0; i < a.count; i++){
         printf("\"%s\" ", a.words[i]);
     }
     printf("\n");
-    FreeMemory(&a);
+
+    freeMemory(&a);
 
     return 0;
 }
