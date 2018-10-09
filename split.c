@@ -2,22 +2,19 @@
 #include <string.h>
 #include <stdlib.h>
 
-typedef struct a {
+typedef struct MaxValue {
     int str, delimeters, word;
-} Max;
+} MaxValue;
 
-typedef struct b {
+typedef struct SplitParameters {
     int count;
     char* str;
     char* delimeters;
     char** words;
-    Max *max;
-} All;
+    MaxValue *max;
+} SplitParameters;
 
-// Все хорошо, кроме названия структур Max и All. Уж больно непонятные названия.Еще и "a", "b" :)
-// Обычно пишут typedef struct All { ... } All; без дополнительного имени структуры.
-
-void split(All* a) {
+void split(SplitParameters* a) {
     a->words[a->count] = strtok(a->str, a->delimeters);
 
     while(a->words[a->count] != NULL){
@@ -26,7 +23,7 @@ void split(All* a) {
     }
 }
 
-void giveMemory(All* a) {
+void giveMemory(SplitParameters* a) {
     a->max = calloc(1, sizeof(Max));
     a->max->str = 4000;
     a->max->delimeters = 50;
@@ -37,13 +34,13 @@ void giveMemory(All* a) {
     a->count = 0;
 }
 
-void freeMemory(All* mem){
+void freeMemory(SplitParameters* mem) {
     free(mem->words);
     free(mem->delimeters);
     free(mem->str);
 }
 
-void scan(All* a) {
+void scan(SplitParameters* a) {
     printf("Write a string, you want to divide\n");
     fgets(a->str, a->max->str, stdin);
     printf("Write a string of delimeters\n");
@@ -51,7 +48,7 @@ void scan(All* a) {
 }
 
 int main() {
-    All a;
+    SplitParameters a;
     giveMemory(&a);
     scan(&a);
     split(&a);
