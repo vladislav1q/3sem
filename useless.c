@@ -4,6 +4,8 @@
 #include <sys/wait.h>
 #include <string.h>
 
+// Вы переименовывали названия структур a и b на что-то более понятное, но в сюда изменения не перенесли
+
 typedef struct a{
     int str, word;
 }Max;
@@ -95,15 +97,18 @@ int main(){
         }
     }
 
+    // FIXIT: вы сортируете по pid, а не по времени старта. Зато, как я понял, ниже предполагаете, что у в child[count - 1].num максимальное значение
     qsort(child, count, sizeof(Pid), compare);
 
     sleep(delay);
     for(int i = 0; i <= child[count-1].num; i++){   //killing processes
         for(int k = 0; k < count; k++)
             if(child[k].num == i){
+                // FIXIT: можно удостовериться с помощью waitpid с флаго NOHANG, что процесс все ещё живой и только тогда убивать и писать сообщение об этом
                 kill(child[k].pid, SIGKILL);
                 printf("Process with pid %d is killed\n", child[k].pid);
             }
+        // Здорово, что вы придумали альтернативный способ учета таймаута, предполагая, что все времена кратны 1 сек
         sleep(1);
     }
 
