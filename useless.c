@@ -4,25 +4,23 @@
 #include <sys/wait.h>
 #include <string.h>
 
-// Вы переименовывали названия структур a и b на что-то более понятное, но в сюда изменения не перенесли
-
-typedef struct a{
+typedef struct MaxValue{
     int str, word;
-}Max;
+}MaxValue;
 
-typedef struct c{
-    unsigned int num, pid;
+typedef struct Pid{
+    unsigned int time, pid;
 }Pid;
 
-typedef struct b{
+typedef struct SplitParameters{
     int count;
     char **str;
     char *delimeters;
     char ***words;
-    Max *max;
-} All;
+    MaxValue *max;
+} SplitParameters;
 
-void split(All* a, int i){
+void split(SplitParameters* a, int i){
     a->words[i][a->count] = strtok(a->str[i], a->delimeters);
 
     while(a->words[i][a->count] != NULL){
@@ -31,8 +29,8 @@ void split(All* a, int i){
     }
 }
 
-void giveMemory(All* a, int count){
-    a->max = calloc(1, sizeof(Max));
+void giveMemory(SplitParameters* a, int count){
+    a->max = calloc(1, sizeof(MaxValue));
     a->max->str = 4000;
     a->max->word = 40;
     a->count = 0;
@@ -44,7 +42,7 @@ void giveMemory(All* a, int count){
     }
 }
 
-void freeMemory(All* mem, int count){
+void freeMemory(SplitParameters* mem, int count){
     for(int i = 0; i < count; i++) {
         free(mem->words[i]);
         free(mem->str[i]);
@@ -57,16 +55,16 @@ void freeMemory(All* mem, int count){
 int compare(const void *x, const void *y){
     const Pid *a = (const Pid*)x;
     const Pid *b = (const Pid*)y;
-    return a->num - b->num;
+    return a->time - b->time;
 }
 
 int main(){
-    int count = 0, delay;
+    int count = 0, delay, status = 0;
     scanf("%d\n", &delay);
     char delimeters[] = " \n";
     int maxNumberStr = 100;
 
-    All a;
+    SplitParameters a;
     giveMemory(&a, maxNumberStr);
     a.delimeters = delimeters;
 
@@ -76,19 +74,18 @@ int main(){
         split(&a, count);
         count++;
     }
-    count--;
 
     Pid child[count];                               //create massiv with delays and pids of processes
     int pid;
     for(int i = 0; i < count; i++){
-        child[i].num = (unsigned int)atoi(a.words[i][0]);
+        child[i].time = (unsigned int)atoi(a.words[i][0]);
     }
 
     for(int i = 0; i < count; i++){                 //create a new process with determinied delay
         pid = fork();
         child[i].pid = pid;
         if(pid == 0){
-            sleep(child[i].num);
+            sleep(child[i].time);
             execvp(a.words[i][1], &(a.words[i][1]));
             exit(0);
         } else if(pid == -1){
@@ -97,18 +94,26 @@ int main(){
         }
     }
 
-    // FIXIT: вы сортируете по pid, а не по времени старта. Зато, как я понял, ниже предполагаете, что у в child[count - 1].num максимальное значение
+    printf("\nCount is: %d\n", count);
+
+    for(int i = 0; i < count; i++){                 //create a new process with determinied delay
+        printf("My pid is %d\n", child[i].pid);
+    }
+    //Я сортирую по времени старта, у меня структура состоит из pid и времени работы
+    // так вот структура называется Pid а я перехожу к полю time
+    //после сортировки у child[count - 1] действительно наибольшее время выполнения
+
     qsort(child, count, sizeof(Pid), compare);
 
     sleep(delay);
-    for(int i = 0; i <= child[count-1].num; i++){   //killing processes
+    for(int i = 0; i <= child[count-1].time; i++){   //killing processes
         for(int k = 0; k < count; k++)
-            if(child[k].num == i){
-                // FIXIT: можно удостовериться с помощью waitpid с флаго NOHANG, что процесс все ещё живой и только тогда убивать и писать сообщение об этом
-                kill(child[k].pid, SIGKILL);
-                printf("Process with pid %d is killed\n", child[k].pid);
+            if(child[k].time == i){
+                if(!waitpid(child[k].pid, &status, CLD_EXITED)){
+                    kill(child[k].pid, SIGKILL);
+                    printf("Process with pid %d is killed\n", child[k].pid);
+                }
             }
-        // Здорово, что вы придумали альтернативный способ учета таймаута, предполагая, что все времена кратны 1 сек
         sleep(1);
     }
 
