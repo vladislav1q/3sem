@@ -6,11 +6,11 @@
 
 typedef struct MaxValue{
     int str, word;
-}MaxValue;
+} MaxValue;
 
 typedef struct Pid{
     unsigned int time, pid;
-}Pid;
+} Pid;
 
 typedef struct SplitParameters{
     int count;
@@ -75,13 +75,13 @@ int main(){
         count++;
     }
 
-    Pid child[count];                               //create massiv with delays and pids of processes
+    Pid child[count];                               //create array with delays and pids of processes
     int pid;
     for(int i = 0; i < count; i++){
         child[i].time = (unsigned int)atoi(a.words[i][0]);
     }
 
-    for(int i = 0; i < count; i++){                 //create a new process with determinied delay
+    for(int i = 0; i < count; i++){                 //create a new process with determined delay
         pid = fork();
         child[i].pid = pid;
         if(pid == 0){
@@ -99,14 +99,11 @@ int main(){
     for(int i = 0; i < count; i++){                 //create a new process with determinied delay
         printf("My pid is %d\n", child[i].pid);
     }
-    //Я сортирую по времени старта, у меня структура состоит из pid и времени работы
-    // так вот структура называется Pid а я перехожу к полю time
-    //после сортировки у child[count - 1] действительно наибольшее время выполнения
 
     qsort(child, count, sizeof(Pid), compare);
 
     sleep(delay);
-    for(int i = 0; i <= child[count-1].time; i++){   //killing processes
+    for(int i = 0; i <= child[count - 1].time; i++){   //killing processes
         for(int k = 0; k < count; k++)
             if(child[k].time == i){
                 if(!waitpid(child[k].pid, &status, CLD_EXITED)){
