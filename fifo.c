@@ -10,12 +10,14 @@
 #include <signal.h>
 
 typedef struct PathFile{
+    // если честно, мне кажется, что maxLength можно сделать общей константой и не хранить для каждого экземпляра отдельно
     int maxLength;
     const char* path0;
     const char* path1;
 } PathFile;
 
 void strNull(char* a, int maxLength){
+    // уже есть готовая команда для этого http://man7.org/linux/man-pages/man3/memset.3.html
     for(int i = 0; i < maxLength; i++)
         a[i] = '\0';
 }
@@ -41,6 +43,7 @@ void openMy(int* fd, const char* a){
         printf("fd: %d\n", *fd);
 }
 
+// глагола не хватает в названии
 int messanger(char** argv, PathFile* a){
     int fd[2], pid;
     char buf0[a->maxLength];
@@ -54,6 +57,7 @@ int messanger(char** argv, PathFile* a){
     if (argv[1] == NULL) {
         printf("Error. Enter the name of program in the following format: ./a.out 0(1)");
         return 0;
+    // FIXIT: у вас код в двух ветках if'а дублируется. нужно вынести похожие куски в отдельные ф-и, чтобы избежать этого
     } else if (argv[1][0] == '0') {
         printf("I'm the terminal 0.\n");
         printf("To exit enter \"qqq\"");
