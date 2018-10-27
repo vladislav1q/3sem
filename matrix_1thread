@@ -1,0 +1,91 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct Matrix{
+    int height, width;
+    int **matrix;
+} Matrix;
+
+void scanMatrix(Matrix *A){
+    printf("Fill in the height and width of the matrix ( in the format: \"n m\" )\n");
+    scanf("%d %d", &(A->height), &(A->width));
+
+    //printf("height : %d, width : %d\n", A->height, A->width);
+
+    A->matrix = malloc(A->height * sizeof(int*));
+    for(int i = 0; i < A->height; i++) {
+        (A->matrix)[i] = malloc((A->width) * sizeof(int));
+        //printf("1 more line.\n");
+    }
+
+    printf("Write down the matrix.\n");
+    for(int i = 0; i < A->height; i++){
+        for(int k = 0; k < A->width; k++) {
+            scanf("%d", &((A->matrix)[i][k]));
+            //printf("read: %d\n", (A->matrix)[i][k]);
+        }
+    }
+}
+
+void printMatrix(Matrix A){
+    for(int i = 0; i < A.height; i++){
+        for(int k = 0; k < A.width; k++)
+            printf("%5d ", (A.matrix)[i][k]);
+        printf("\n");
+    }
+}
+
+void freeMatrix(Matrix *A){
+    for(int i = 0; i < A->height; i++)
+        free((A->matrix)[i]);
+    free(A->matrix);
+}
+
+Matrix createMatrix(int height, int width){
+    Matrix A;
+
+    A.width = width;
+    A.height = height;
+
+    A.matrix = malloc((A.height) * sizeof(int*));
+    for(int i = 0; i < A.height; i++)
+        (A.matrix)[i] = malloc((A.width) * sizeof(int));
+
+    return A;
+}
+
+int Line_x_Column(Matrix A, Matrix B, int line, int column){
+    int result = 0;
+    for(int i = 0; i < A.width; i++)
+        result += (A.matrix)[line][i] * (B.matrix)[i][column];
+    return result;
+}
+
+Matrix multMatrix(Matrix A, Matrix B){
+    Matrix C = createMatrix(A.height, B.width);
+    for(int i = 0; i < A.height; i++) {
+        for (int k = 0; k < B.width; k++)
+            (C.matrix)[i][k] = Line_x_Column(A, B, i, k);
+    }
+    return C;
+}
+
+int main() {
+    Matrix A, B, C;
+    scanMatrix(&A);
+    scanMatrix(&B);
+
+    if(A.width != B.height){
+        printf("Incompatible matrixs!\n");
+        return 0;
+    }
+
+    C = multMatrix(A, B);
+    printMatrix(C);
+
+    freeMatrix(&A);
+    freeMatrix(&A);
+    freeMatrix(&C);
+
+    return 0;
+}
