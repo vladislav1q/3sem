@@ -9,9 +9,11 @@
 #include <string.h>
 #include <signal.h>
 
+// FIXIT: константы, объявленные через define пишите, пожалуйста, вот в таком стиле MAX_LENGTH
 #define maxLength 500
 
 typedef struct PathFile{
+    // FIXIT: для path0 и path1 вероятно можно придумать более "говорящие" названия: fileToWrite, fileToRead или что-то вроде того 
     const char* path0;
     const char* path1;
 } PathFile;
@@ -38,6 +40,7 @@ void openMy(int* fd, const char* a){
 }
 
 int createUser(int *fd, int pid){
+    // FIXIT: зачем вам два буффера? все равно только одна ветка if-а работать будет при заданном pid
     char buf0[maxLength];
     char buf1[maxLength];
     memset(buf1, 0, maxLength);
@@ -55,6 +58,7 @@ int createUser(int *fd, int pid){
         while (1) {
             memset(buf0, 0, maxLength);
             fgets(buf0, maxLength, stdin);
+            // FIXIT: условие ниже лучше через strcmp реализовать
             if((buf0[0] == 'q') && (buf0[1] == 'q') && (buf0[2] == 'q')){
                 close(fd[0]);
                 close(fd[1]);
@@ -79,11 +83,12 @@ int createMessanger(char** argv, PathFile* a){
         printf("Error. Enter the name of program in the following format: ./a.out 0(1)\n");
         return 1;
     } else if (argv[1][0] == '0') {
+        // FIXIT: код в разных ветка if-а отличается минимально. Чтобы избежать дублирования также давайте в отдельную ф-ю вынесем
         printf("I'm the terminal 0.\nTo exit enter \"qqq\"\n");
 
-        openMy(fd, a->path0);
         openMy(fd+1, a->path1);
-
+        openMy(fd, a->path0);
+        
         pid = fork();
         createUser(fd, pid);
 
