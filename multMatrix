@@ -5,6 +5,11 @@
 
 //Я не смог ускорить, хотя, как мне кажется, должно быть ускорение
 
+// Ускорение стоит замерять на больших матрицах ... 1000*1000, например. 
+// Плюс попробуйте замерять wall-clock time с помощью 
+// http://qaru.site/questions/130442/how-can-i-measure-cpu-time-and-wall-clock-time-on-both-linuxwindows
+// Там есть кусочек кода double get_wall_time() для Linux
+
 typedef struct Matrix{
     int height, width;
     int **matrix;
