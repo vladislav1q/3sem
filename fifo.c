@@ -9,13 +9,11 @@
 #include <string.h>
 #include <signal.h>
 
-// FIXIT: константы, объявленные через define пишите, пожалуйста, вот в таком стиле MAX_LENGTH
-#define maxLength 500
+#define MAX_Length 500
 
 typedef struct PathFile{
-    // FIXIT: для path0 и path1 вероятно можно придумать более "говорящие" названия: fileToWrite, fileToRead или что-то вроде того 
-    const char* path0;
-    const char* path1;
+    const char* fileToWrite;
+    const char* fileToRead;
 } PathFile;
 
 void makeFifo(const char* path){
@@ -40,26 +38,22 @@ void openMy(int* fd, const char* a){
 }
 
 int createUser(int *fd, int pid){
-    // FIXIT: зачем вам два буффера? все равно только одна ветка if-а работать будет при заданном pid
-    char buf0[maxLength];
-    char buf1[maxLength];
-    memset(buf1, 0, maxLength);
-    memset(buf0, 0, maxLength);
+    char buf0[MAX_Length];
+    memset(buf0, 0, MAX_Length);
 
     if (pid > 0) {
         while (1) {
-            memset(buf1, 0, maxLength);
-            read(fd[1], buf1, maxLength);
-            printf("Friend: %s\n", buf1);
+            memset(buf0, 0, MAX_Length);
+            read(fd[1], buf0,MAX_Length);
+            printf("Friend: %s\n", buf0);
         }
     } else if (pid == 0) {
         printf("Parent's pid: %d\nChild's pid: %d\n\n", getppid(), getpid());
-        
+
         while (1) {
-            memset(buf0, 0, maxLength);
-            fgets(buf0, maxLength, stdin);
-            // FIXIT: условие ниже лучше через strcmp реализовать
-            if((buf0[0] == 'q') && (buf0[1] == 'q') && (buf0[2] == 'q')){
+            memset(buf0, 0, MAX_Length);
+            fgets(buf0, MAX_Length, stdin);
+            if(strncmp(buf0, "qqq", 3) == 0){
                 close(fd[0]);
                 close(fd[1]);
                 kill(getppid(), SIGTERM);
@@ -76,27 +70,18 @@ int createUser(int *fd, int pid){
 int createMessanger(char** argv, PathFile* a){
     int fd[2], pid;
 
-    makeFifo(a->path0);
-    makeFifo(a->path1);
+    makeFifo(a->fileToWrite);
+    makeFifo(a->fileToRead);
 
     if (argv[1] == NULL) {
         printf("Error. Enter the name of program in the following format: ./a.out 0(1)\n");
         return 1;
-    } else if (argv[1][0] == '0') {
-        // FIXIT: код в разных ветка if-а отличается минимально. Чтобы избежать дублирования также давайте в отдельную ф-ю вынесем
-        printf("I'm the terminal 0.\nTo exit enter \"qqq\"\n");
+    } else if ((argv[1][0] == '0') || (argv[1][0] == '1')) {
+        int user = (int) argv[1][0] - (int) '0';
+        printf("I'm the terminal %d.\nTo exit enter \"qqq\"\n", user);
 
-        openMy(fd+1, a->path1);
-        openMy(fd, a->path0);
-        
-        pid = fork();
-        createUser(fd, pid);
-
-    } else if (argv[1][0] == '1') {
-        printf("I'm the terminal 1.\nTo exit enter \"qqq\"\n");
-
-        openMy(fd+1, a->path0);
-        openMy(fd, a->path1);
+        openMy(fd + user, a->fileToWrite);
+        openMy(fd + (user + 1) % 2, a->fileToRead);
 
         pid = fork();
         createUser(fd, pid);
@@ -111,8 +96,8 @@ int createMessanger(char** argv, PathFile* a){
 int main(int argc, char *argv[], char *envp[]) {
     int status;
     PathFile a;
-    a.path0 = "a1.fifo";
-    a.path1 = "a2.fifo";
+    a.fileToWrite = "a1.fifo";
+    a.fileToRead = "a2.fifo";
 
     status = createMessanger(argv, &a);
 
