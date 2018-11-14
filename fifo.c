@@ -9,6 +9,7 @@
 #include <string.h>
 #include <signal.h>
 
+// FIXIT: MAX_LENGTH
 #define MAX_Length 500
 
 typedef struct PathFile{
@@ -38,8 +39,8 @@ void openMy(int* fd, const char* a){
 }
 
 int createUser(int *fd, int pid){
+    // FIXIT: вместо buf0 можно написать просто buf - менее понятно не станет
     char buf0[MAX_Length];
-    memset(buf0, 0, MAX_Length);
 
     if (pid > 0) {
         while (1) {
@@ -76,13 +77,15 @@ int createMessanger(char** argv, PathFile* a){
     if (argv[1] == NULL) {
         printf("Error. Enter the name of program in the following format: ./a.out 0(1)\n");
         return 1;
-    } else if ((argv[1][0] == '0') || (argv[1][0] == '1')) {
+    } else if (argv[1][0] == '0' || argv[1][0] == '1') {
         int user = (int) argv[1][0] - (int) '0';
         printf("I'm the terminal %d.\nTo exit enter \"qqq\"\n", user);
 
         openMy(fd + user, a->fileToWrite);
         openMy(fd + (user + 1) % 2, a->fileToRead);
 
+        // FIXIT: у вас pid нигде кроме createUser не используется.
+        // можно прям внутри этой ф-и и вызвать fork и не передавать pid в качестве аргумента
         pid = fork();
         createUser(fd, pid);
     } else {
