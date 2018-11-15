@@ -1,0 +1,135 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <time.h>
+
+//Я не смог ускорить, хотя, как мне кажется, должно быть ускорение
+
+// Ускорение стоит замерять на больших матрицах ... 1000*1000, например. 
+// Плюс попробуйте замерять wall-clock time с помощью 
+// http://qaru.site/questions/130442/how-can-i-measure-cpu-time-and-wall-clock-time-on-both-linuxwindows
+// Там есть кусочек кода double get_wall_time() для Linux
+
+typedef struct Matrix{
+    int height, width;
+    int **matrix;
+} Matrix;
+
+void scanMatrix(Matrix *A){
+    printf("Fill in the height and width of the matrix ( in the format: \"n m\" )\n");
+    scanf("%d %d", &(A->height), &(A->width));
+
+    A->matrix = malloc(A->height * sizeof(int*));
+    for(int i = 0; i < A->height; i++)
+        (A->matrix)[i] = malloc((A->width) * sizeof(int));
+
+    printf("Write down the matrix.\n");
+    for(int i = 0; i < A->height; i++){
+        for(int k = 0; k < A->width; k++)
+            scanf("%d", &((A->matrix)[i][k]));
+    }
+}
+
+void printMatrix(Matrix A){
+    for(int i = 0; i < A.height; i++){
+        for(int k = 0; k < A.width; k++)
+            printf("%7d ", (A.matrix)[i][k]);
+        printf("\n");
+    }
+}
+
+void freeMatrix(Matrix *A){
+    for(int i = 0; i < A->height; i++)
+        free((A->matrix)[i]);
+    free(A->matrix);
+}
+
+void createMatrix(int height, int width, Matrix *A){
+    A->width = width;
+    A->height = height;
+
+    A->matrix = malloc((A->height) * sizeof(int*));
+    for(int i = 0; i < A->height; i++)
+        (A->matrix)[i] = malloc((A->width) * sizeof(int));
+
+    return;
+}
+
+int Line_x_Column(Matrix A, Matrix B, int line, int column){
+    int result = 0;
+    for(int i = 0; i < A.width; i++)
+        result += (A.matrix)[line][i] * (B.matrix)[i][column];
+    return result;
+}
+
+void multMatrix(Matrix A, Matrix B, Matrix *C){
+    int startTime = clock();
+    for(int i = 0; i < A.height; i++) {
+        for (int k = 0; k < B.width; k++)
+            (C->matrix)[i][k] = Line_x_Column(A, B, i, k);
+    }
+    int endTime = clock();
+    printf("Working rime is %d - %d ticks.\n\n", endTime, startTime);
+}
+typedef struct Thread{
+    Matrix A, B, *C;
+    int n;
+} Thread;
+
+void* thread(void * info){
+    Thread* infoMy = (Thread*)info;
+    for (int k = 0; k < infoMy->B.width; k++) {
+
+        (infoMy->C->matrix)[infoMy->n][k] = Line_x_Column(infoMy->A, infoMy->B, infoMy->n, k);
+    }
+}
+
+void multMatrixThreads(Matrix A, Matrix B, Matrix *C){
+    int n = A.height;
+    Thread info[n];
+    for(int i = 0; i < n; i++){
+        info[i].A = A;
+        info[i].B = B;
+        info[i].C = C;
+        info[i].n = i;
+    }
+
+    int result[n];
+    pthread_t thid[n];
+
+    int startTime = clock();
+    for(int i = 0; i < n; i++)
+        result[i] = pthread_create(thid + i, (pthread_attr_t *) NULL, thread, &(info[i]));
+
+    for(int i = 0; i < n; i++)
+        pthread_join(thid[i], (void **) NULL);
+    int endTime = clock();
+    printf("Working rime is %d - %d ticks.\n\n", endTime, startTime);
+}
+
+int main() {
+    Matrix A, B, C, D;
+    scanMatrix(&A);
+    scanMatrix(&B);
+
+    if(A.width != B.height){
+        printf("Incompatible matrixs!\n");
+        return 0;
+    }
+
+    createMatrix(A.height, B.width, &C);
+    multMatrixThreads(A, B, &C);
+    printMatrix(C);
+
+    createMatrix(A.height, B.width, &D);
+    multMatrix(A, B, &D);
+    printMatrix(D);
+
+
+    freeMatrix(&A);
+    freeMatrix(&B);
+    freeMatrix(&C);
+    freeMatrix(&D);
+
+    return 0;
+}
