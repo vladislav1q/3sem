@@ -12,6 +12,6 @@
         </UrlAndUserName>
       </list>
     </option>
-    <option name="cloneParentDir" value="$USER_HOME$/AndroidStudioProjects/andoid" />
+    <option name="cloneParentDir" value="$USER_HOME$/AndroidStudioProjects" />
   </component>
 </application>
